@@ -1,0 +1,24 @@
+* THIS IS VERY MUCH STILL A WIP
+So far only syntax highlighting has been implemented.
+
+* odin-ts-mode
+A Major mode for Emacs >= 29.1 powered by tree-sitter for editing odin files.
+
+** Requirements
+Emacs >= 29.1 compiled with tree-sitter.
+
+The grammar utilized for this major-mode can be found at https://github.com/tree-sitter-grammars/tree-sitter-odin.
+
+To install it you can add this line to your `treesit-language-source-alist`:
+#+begin_src elisp
+  (defvar treesit-language-source-alist
+    '(...
+      (odin "https://github.com/tree-sitter-grammars/tree-sitter-odin")
+      ...))
+#+end_src
+Afterwards run M-x treesit-install-language-grammar RET odin RET.
+
+** TODO Roadmap? [1/3]
+- [X] Syntax Highlighting
+- [ ] Indentation
+- [ ] Imenu
