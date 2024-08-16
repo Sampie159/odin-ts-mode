@@ -1,5 +1,7 @@
-* THIS IS VERY MUCH STILL A WIP
-So far only syntax highlighting has been implemented.
+* This is still a WIP
+Syntax highlighting and indentation still need a bit more testing and fine tuning,
+sometimes when writing some egregious Odin code Emacs will crash? lockup? but most
+of the time it should be fine.
 
 * odin-ts-mode
 A Major mode for Emacs >= 29.1 powered by tree-sitter for editing odin files.
@@ -18,7 +20,8 @@ To install it you can add this line to your `treesit-language-source-alist`:
 #+end_src
 Afterwards run M-x treesit-install-language-grammar RET odin RET.
 
-** TODO Roadmap? [1/3]
+** TODO Roadmap? [2/3]
 - [X] Syntax Highlighting
-- [ ] Indentation
+- [X] Indentation
+  - [ ] Make sure everything is good
 - [ ] Imenu

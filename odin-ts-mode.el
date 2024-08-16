@@ -182,7 +182,7 @@
    `([,@odin-ts-mode--keywords] @font-lock-keyword-face
      [,@odin-ts-mode--includes] @font-lock-keyword-face
      [,@odin-ts-mode--storage-classes] @font-lock-keyword-face
-     [,@odin-ts-mode--conditionals] @font-lock-keyword-face
+     [,@odin-ts-mode--conditionals (fallthrough_statement)] @font-lock-keyword-face
      [,@odin-ts-mode--repeats] @font-lock-keyword-face)
 
    :language 'odin
@@ -224,15 +224,30 @@
     (operator punctuation variable namespace property))
   "Feature list used by `odin-ts-mode`.")
 
+(defvar odin-ts-mode--indent-rules
+  `((odin
+     ((parent-is "source_file") column-0 0)
+     ((node-is "^\\(}\\|]\\|)\\)") parent-bol 0)
+     ((parent-is "block") parent-bol odin-ts-mode-indent-offset)
+     ((parent-is "switch_case") parent-bol odin-ts-mode-indent-offset)
+     ((node-is "switch_case") parent-bol 0)
+     ((parent-is "^\\(struct\\|enum\\|union\\|bit_field\\)_declaration") parent-bol odin-ts-mode-indent-offset)
+     ((parent-is "parameters") parent-bol odin-ts-mode-indent-offset)
+     (no-node parent 0)
+     ))
+  "Indentation rules for `odin-ts-mode`.")
+
 (defun odin-ts-mode-setup ()
   "Setup treesit for `odin-ts-mode`."
+  (setq treesit--indent-verbose t)
 
   ;; Highlighting
   (setq-local treesit-font-lock-settings odin-ts-mode--font-lock-rules
               treesit-font-lock-feature-list odin-ts-mode--font-lock-feature-list)
 
   ;; Indentation
-  (setq-local electric-indent-chars (append "{}():;," electric-indent-chars))
+  (setq-local treesit-simple-indent-rules odin-ts-mode--indent-rules
+              electric-indent-chars (append "{}():;," electric-indent-chars))
 
   (treesit-major-mode-setup))
 
