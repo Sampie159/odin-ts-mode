@@ -31,6 +31,21 @@
 ;; SOFTWARE.
 
 ;;; Commentary:
+
+;; Powered by Emacs >= 29 and tree-sitter this major mode provides
+;; syntax highlighting, indentation and imenu support for Odin.
+;; odin-ts-mode is built against the tree-sitter grammar locatated at
+;; https://github.com/tree-sitter-grammars/tree-sitter-odin
+
+;; Much of the structure of this code is based on the c3-ts-mode located at
+;; https://github.com/c3lang/c3-ts-mode
+;; and on odin-mode located at
+;; https://github.com/mattt-b/odin-mode
+
+;; Many thanks for Mickey Petersen for his article "Let's Write a Tree-Sitter Major mode"
+;; which can be found at https://www.masteringemacs.org/article/lets-write-a-treesitter-major-mode
+;; for helping me do this.
+
 ;;; Code:
 
 (require 'treesit)
@@ -45,18 +60,6 @@
   :version "29.1"
   :type 'integer
   :safe 'integerp
-  :group 'odin-ts)
-
-(defcustom odin-ts-mode-module-path-face '@font-lock-constant-face
-  "The face to use for highlighting module paths in `odin-ts-mode`."
-  :version "29.1"
-  :type 'symbol
-  :group 'odin-ts)
-
-(defcustom odin-ts-mode-assignment-face '@font-lock-variable-name-face
-  "The face to use for highlighting assignments in `odin-ts-mode`."
-  :version "29.1"
-  :type 'symbol
   :group 'odin-ts)
 
 (defcustom odin-ts-mode-hook nil
@@ -99,111 +102,64 @@
     table)
   "Syntax table for `odin-ts-mode`.")
 
-(defconst odin-ts-mode--builtins ;; also stolen
-  '("len" "cap"
-    "typeid_of" "type_info_of"
-    "swizzle" "complex" "real" "imag" "quaternion" "conj"
-    "jmag" "kmag"
-    "min" "max" "abs" "clamp"
-    "expand_to_tuple"
+(defconst odin-ts-mode--includes
+  '("import" "package")
+  "Includes used in `odin-ts-mode`.")
 
-    "init_global_temporary_allocator"
-    "copy" "pop" "unordered_remove" "ordered_remove" "clear" "reserve"
-    "resize" "new" "new_clone" "free" "free_all" "delete" "make"
-    "clear_map" "reserve_map" "delete_key" "append_elem" "append_elems"
-    "append" "append_string" "clear_dynamic_array" "reserve_dynamic_array"
-    "resize_dynamic_array" "incl_elem" "incl_elems" "incl_bit_set"
-    "excl_elem" "excl_elems" "excl_bit_set" "incl" "excl" "card"
-    "assert" "panic" "unimplemented" "unreachable")
-  "Builtins used in the Odin language.")
+(defconst odin-ts-mode--storage-classes
+  '("distinct" "dynamic")
+  "Storage classes used in `odin-ts-mode`.")
 
-(defconst odin-ts-mode--keywords ;; stolen
-  '("import" "foreign" "package"
-    "where" "when" "if" "else" "for" "switch" "in" "notin" "do" "case"
-    "break" "continue" "fallthrough" "defer" "return" "proc"
-    "struct" "union" "enum" "bit_field" "bit_set" "map" "dynamic"
-    "auto_cast" "cast" "transmute" "distinct" "opaque"
-    "using" "inline" "no_inline"
-    "size_of" "align_of" "offset_of" "type_of"
-    "context"
-    "macro" "const")
+(defconst odin-ts-mode--operators
+  '(":=" "=" "+" "-" "*" "/" "%" "%%" ">" ">=" "<" "<=" "==" "!=" "~="
+    "|" "~" "&" "&~" "<<" ">>" "||" "&&" "!" "^" ".." "+=" "-=" "*="
+    "/=" "%=" "&=" "|=" "^=" "<<=" ">>=" "||=" "&&=" "&~=" "..=" "..<" "?")
+  "Operators used in `odin-ts-mode`.")
+
+(defconst odin-ts-mode--keywords
+  '("foreign" "or_else"
+    "in" "not_in"
+    "defer" "return" "proc"
+    "struct" "union" "enum" "bit_field" "bit_set" "map"
+    "auto_cast" "cast" "transmute"
+    "using")
   "Keywords used in the Odin language.")
 
-(defconst odin-ts-mode--constants ;; guess?
-  '("nil" "true" "false"
-    "ODIN_OS" "ODIN_ARCH" "ODIN_ENDIAN" "ODIN_VENDOR"
-    "ODIN_VERSION" "ODIN_ROOT" "ODIN_DEBUG")
-  "Constants used in the Odin language.")
+(defconst odin-ts-mode--conditionals
+  '("if" "else" "when" "switch" "case" "where" "break")
+  "Conditionals used in `odin-ts-mode`.")
 
-(defconst odin-ts-mode--types ;; you already know >:)
-  '("bool" "b8" "b16" "b32" "b64"
-    "int" "i8" "i16" "i32" "i64"
-    "i16le" "i32le" "i64le"
-    "i16be" "i32be" "i64be"
-    "i128" "u128"
-    "i128le" "u128le"
-    "i128be" "u128be"
-    "uint" "u8" "u16" "u32" "u64"
-    "u16le" "u32le" "u64le"
-    "u16be" "u32be" "u64be"
-    "f16" "f32" "f64"
-    "complex64" "complex128"
-    "quaternion128" "quaternion256"
-    "rune"
-    "string" "cstring"
-    "uintptr" "rawptr"
-    "typeid" "any"
-    "byte")
-  "Types used in the Odin language.")
-
-(defconst odin-ts-mode--attributes ;; do i have to say anything?
-  '("builtin"
-    "export"
-    "static"
-    "deferred_in" "deferred_none" "deferred_out"
-    "require_results"
-    "default_calling_convention" "link_name" "link_prefix"
-    "deprecated" "private" "thread_local")
-  "Attributes used in the Odin language.")
-
-(defconst odin-ts-mode--proc-directives ;; :)
-  '("#force_inline"
-    "#force_no_inline"
-    "#optional_ok"
-    "#type")
-  "Directives that can appear before or after a proc declaration.")
-
-(defconst odin-ts-mode--directives ;; ;)
-  (append '("#align" "#packed"
-            "#any_int"
-            "#raw_union"
-            "#no_nil"
-            "#complete"
-            "#no_alias"
-            "#c_vararg"
-            "#assert"
-            "#file" "#line" "#location" "#procedure" "#caller_location"
-            "#load"
-            "#defined"
-            "#bounds_check" "#no_bounds_check"
-            "#partial")
-          odin-ts-mode--proc-directives)
-  "Directives that are used in the Odin language.")
+(defconst odin-ts-mode--repeats
+  '("for" "do" "continue")
+  "Repeats used in `odin-ts-mode`.")
 
 (defvar odin-ts-mode--font-lock-rules
   (treesit-font-lock-rules
    :language 'odin
    :override t
+   :feature 'variable
+   '((identifier) @font-lock-variable-use-face)
+
+   :language 'odin
+   :override t
+   :feature 'namespace
+   '((package_declaration (identifier) @font-lock-constant-face)
+     (import_declaration alias: (identifier) @font-lock-constant-face)
+     (foreign_block (identifier) @font-lock-constant-face)
+     (using_statement (identifier) @font-lock-constant-face))
+
+   :language 'odin
+   :override t
    :feature 'comment
-   '((comment) @font-lock-comment-face
-     (block_comment) @font-lock-comment-face)
+   '([(comment) (block_comment)] @font-lock-comment-face)
 
    :language 'odin
    :override t
    :feature 'literal
    '((number) @font-lock-number-face
      (float) @font-lock-number-face
-     (character) @font-lock-constant-face)
+     (character) @font-lock-constant-face
+     (boolean) @font-lock-constant-face)
 
    :language 'odin
    :override t
@@ -217,50 +173,56 @@
 
    :language 'odin
    :override t
+   :feature 'preproc
+   '([(calling_convention) (tag)] @font-lock-preprocessor-face)
+
+   :language 'odin
+   :override t
    :feature 'keyword
-   `([,@odin-ts-mode--keywords] @font-lock-keyword-face)
+   `([,@odin-ts-mode--keywords] @font-lock-keyword-face
+     [,@odin-ts-mode--includes] @font-lock-keyword-face
+     [,@odin-ts-mode--storage-classes] @font-lock-keyword-face
+     [,@odin-ts-mode--conditionals] @font-lock-keyword-face
+     [,@odin-ts-mode--repeats] @font-lock-keyword-face)
 
    :language 'odin
    :override t
-   :feature 'builtin
-   `([,@odin-ts-mode--builtins] @font-lock-builtin-face)
+   :feature 'function
+   '((procedure_declaration (identifier) @font-lock-function-name-face)
+     (call_expression function: (identifier) @font-lock-function-call-face)
+     (overloaded_procedure_declaration (identifier) @font-lock-function-name-face))
 
    :language 'odin
    :override t
-   :feature 'constant
-   `([,@odin-ts-mode--constants] @font-lock-constant-face)
+   :feature 'type
+   `((struct_declaration (identifier) @font-lock-type-face)
+     (const_declaration (identifier) @font-lock-type-face)
+     (type (identifier) @font-lock-type-face)
+     (enum_declaration (identifier) @font-lock-type-face)
+     (union_declaration (identifier) @font-lock-type-face)
+     (bit_field_declaration (identifier) @font-lock-type-face))
 
    :language 'odin
    :override t
-   :feature 'directive
-   `([,@odin-ts-mode--proc-directives] @font-lock-builtin-face)
+   :feature 'punctuation
+   `([,@odin-ts-mode--operators] @font-lock-punctuation-face
+     ["{" "}" "(" ")" "[" "]"] @font-lock-punctuation-face
+     ["::" "->" "." "," ":" ";"] @font-lock-punctuation-face
+     ["@" "$"] @font-lock-punctuation-face)
 
    :language 'odin
    :override t
-   :feature 'variable
-   '((identifier) @font-lock-variable-use-face
-     (package_declaration (identifier) @font-lock-variable-use-face)
-     (import_declaration alias: (identifier) @font-lock-variable-use-face)
-     (foreign_block (identifier) @font-lock-variable-use-face)
-     (using_statement (identifier) @font-lock-variable-use-face))
+   :feature 'error
+   '((ERROR) @font-lock-warning-face)
    )
   "Font lock rules used by `odin-ts-mode`.")
 
 (defvar odin-ts-mode--font-lock-feature-list
-  '((comment)
-    (keyword string type)
-    (builtin attribute escape-sequence literal constant function)
-    (type-property operator bracket punctuation variable property))
+  '((comment string)
+    (keyword type)
+    (builtin preproc escape-sequence literal constant function)
+    (operator punctuation variable namespace property))
   "Feature list used by `odin-ts-mode`.")
-
-(defun odin-ts-mode-install-grammar ()
-  "Install the tree-sitter grammar used by `odin-ts-mode`."
-  (interactive)
-  (let ((odin-grammar '((odin "https://github.com/tree-sitter-grammars/tree-sitter-odin"))))
-    (if treesit-language-source-alist
-        (add-to-list 'treesit-language-source-alist odin-grammar)
-        (defvar treesit-language-source-alist odin-grammar))
-    (treesit-install-language-grammar 'odin)))
 
 (defun odin-ts-mode-setup ()
   "Setup treesit for `odin-ts-mode`."
