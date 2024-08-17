@@ -239,7 +239,6 @@
 
 (defun odin-ts-mode-setup ()
   "Setup treesit for `odin-ts-mode`."
-  (setq treesit--indent-verbose t)
 
   ;; Highlighting
   (setq-local treesit-font-lock-settings odin-ts-mode--font-lock-rules
@@ -261,6 +260,7 @@
     (treesit-parser-create 'odin)
     (odin-ts-mode-setup)))
 
+;;;###autoload
 (when (treesit-ready-p 'odin)
   (add-to-list 'auto-mode-alist '("\\.odin\\'" . odin-ts-mode)))
 

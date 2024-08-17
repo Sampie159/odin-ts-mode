@@ -20,6 +20,27 @@ To install it you can add this line to your `treesit-language-source-alist`:
 #+end_src
 Afterwards run M-x treesit-install-language-grammar RET odin RET.
 
+** Installation
+*** Manual Installation:
+Clone this repo
+#+begin_src sh
+  git clone https://github.com/Sampie159/odin-ts-mode.git
+#+end_src
+and add this to your init.el file:
+#+begin_src elisp
+  (load-file "/path/to/odin-ts-mode.el")
+#+end_src
+*** use-package
+You can also use use-package to install this package, simply add this to your init.el file:
+#+begin_src elisp
+  (use-package odin-ts-mode
+    :ensure (:host github :repo "Sampie159/odin-ts-mode"))
+#+end_src
+*** Configuration
+For now the only configuration available is the indent size, you can set it with:
+#+begin_src elisp
+  (setq odin-ts-mode-indent-offset VALUE) ;; Default VALUE is 4
+#+end_src
 ** TODO Roadmap? [2/3]
 - [X] Syntax Highlighting
 - [X] Indentation
