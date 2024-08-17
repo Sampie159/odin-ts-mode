@@ -246,7 +246,7 @@
 
   ;; Indentation
   (setq-local treesit-simple-indent-rules odin-ts-mode--indent-rules
-              electric-indent-chars (append "{}():;," electric-indent-chars))
+              electric-indent-chars (append "{}():;,=" electric-indent-chars))
 
   (treesit-major-mode-setup))
 
