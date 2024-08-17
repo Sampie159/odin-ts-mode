@@ -121,7 +121,6 @@
     "in" "not_in"
     "defer" "return" "proc"
     "struct" "union" "enum" "bit_field" "bit_set" "map"
-    "auto_cast" "cast" "transmute"
     "using")
   "Keywords used in the Odin language.")
 
@@ -159,7 +158,8 @@
    '((number) @font-lock-number-face
      (float) @font-lock-number-face
      (character) @font-lock-constant-face
-     (boolean) @font-lock-constant-face)
+     (boolean) @font-lock-constant-face
+     [(uninitialized) (nil)] @font-lock-constant-face)
 
    :language 'odin
    :override t
@@ -184,6 +184,11 @@
      [,@odin-ts-mode--storage-classes] @font-lock-keyword-face
      [,@odin-ts-mode--conditionals (fallthrough_statement)] @font-lock-keyword-face
      [,@odin-ts-mode--repeats] @font-lock-keyword-face)
+
+   :language 'odin
+   :override t
+   :feature 'builtin
+   '(["auto_cast" "cast" "transmute"] @font-lock-builtin-face)
 
    :language 'odin
    :override t
