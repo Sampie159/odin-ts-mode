@@ -242,6 +242,15 @@
      ))
   "Indentation rules for `odin-ts-mode`.")
 
+(defconst odin-ts-mode--imenu-settings
+  `(("Struct" "\\`struct_declaration\\'" nil nil)
+    ("Enum" "\\`enum_declaration\\'" nil nil)
+    ("Union" "\\`union_declaration\\'" nil nil)
+    ("Bit Field" "\\`bit_field_declaration\\'" nil nil)
+    ("Function" "\\`procedure_declaration\\'" nil nil)
+    ("Function" "\\`overloaded_procedure_declaration\\'" nil nil))
+  "Imenu settings used by `odin-ts-mode`.")
+
 (defun odin-ts-mode-setup ()
   "Setup treesit for `odin-ts-mode`."
 
@@ -252,6 +261,9 @@
   ;; Indentation
   (setq-local treesit-simple-indent-rules odin-ts-mode--indent-rules
               electric-indent-chars (append "{}():;,=" electric-indent-chars))
+
+  ;; Imenu
+  (setq-local treesit-simple-imenu-settings odin-ts-mode--imenu-settings)
 
   (treesit-major-mode-setup))
 

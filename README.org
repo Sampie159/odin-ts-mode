@@ -43,6 +43,7 @@ For now the only configuration available is the indent size, you can set it with
 #+end_src
 ** TODO Roadmap? [2/3]
 - [X] Syntax Highlighting
-- [X] Indentation
+- [-] Indentation [1/2]
+  - [X] Get something working
   - [ ] Make sure everything is good
-- [ ] Imenu
+- [X] Imenu
