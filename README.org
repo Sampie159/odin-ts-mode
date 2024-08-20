@@ -36,14 +36,11 @@ You can also use use-package to install this package, simply add this to your in
   (use-package odin-ts-mode
     :ensure (:host github :repo "Sampie159/odin-ts-mode"))
 #+end_src
-*** Configuration
-For now the only configuration available is the indent size, you can set it with:
-#+begin_src elisp
-  (setq odin-ts-mode-indent-offset VALUE) ;; Default VALUE is 4
-#+end_src
 ** TODO Roadmap? [2/3]
-- [X] Syntax Highlighting
-- [-] Indentation [1/2]
+- [-] Syntax Highlighting [1/2]
   - [X] Get something working
-  - [ ] Make sure everything is good
+  - [ ] Make things prettier
+- [X] Indentation [2/2]
+  - [X] Get something working
+  - [X] Make sure everything is good
 - [X] Imenu
