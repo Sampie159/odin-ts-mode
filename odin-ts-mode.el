@@ -226,9 +226,8 @@
    :override t
    :feature 'property
    `((field (identifier) @font-lock-property-name-face)
-     (struct_field (identifier) @font-lock-property-name-face)
-     (member_expression (identifier) (identifier) @font-lock-property-use-face))
-   )
+     (struct_field (identifier) @font-lock-property-name-face "=")
+     (member_expression "." (identifier) @font-lock-property-use-face)))
   "Font lock rules used by `odin-ts-mode`.")
 
 (defvar odin-ts-mode--font-lock-feature-list
