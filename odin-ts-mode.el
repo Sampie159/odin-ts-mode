@@ -295,6 +295,27 @@ PARENT should be a block_comment node."
      (catch-all parent-bol 0)))
   "Tree-sitter indent rules for `odin-ts-mode`.")
 
+(defvar odin-ts-mode--thing-settings
+  `((odin
+     (defun ,(rx "declaration"))
+
+     (sexp (not (or (and named
+                         ,(rx bos (or "comment"
+                                      "block_comment"
+                                      "block"
+                                      "tagged_block"
+                                      "foreign_block")))
+                    (and anonymous
+                         ,(rx (or "{" "}" "[" "]"
+                                  "(" ")" ",")))))))
+    (list ,(rx bos (or "parameters"
+                       "default_parameter"
+                       "polymorphic_parameters")
+               eos))
+    (sentence ,(rx (or "statement"
+                       "clause"))))
+  "`treesit-thing-settings' for Odin.")
+
 (defun odin-ts-mode-setup ()
   "Setup treesit for `odin-ts-mode`."
 
@@ -310,6 +331,9 @@ PARENT should be a block_comment node."
 
   ;; Comment
   (c-ts-common-comment-setup)
+
+  ;; Navigation
+  (setq-local treesit-thing-settings odin-ts-mode--thing-settings)
 
   (treesit-major-mode-setup))
 
