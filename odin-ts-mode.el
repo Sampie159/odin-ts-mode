@@ -282,6 +282,16 @@ PARENT should be a block_comment node."
      ((parent-is "call_expression")    parent-bol odin-ts-mode-indent-offset)
      ((parent-is "switch_case")        parent-bol odin-ts-mode-indent-offset)
 
+     ;; matches indent of procedure return type to parameters, e.g.
+     ;; proc_name :: proc(arg1, arg2, arg3: int) ->
+     ;;              (ret1, ret2, ret3: int)
+     ((and (parent-is "procedure") (node-is "type")) first-sibling 0)
+     
+     ;; matches indent of multi-line logic expressions, e.g.
+     ;; if pos.x > 0 &&
+     ;;    pos.y > 0 {...
+     ((parent-is "binary_expression") first-sibling 0)
+
      ;; Shamelessely stolen from c-ts-mode
      ((and (parent-is "block_comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
